@@ -1,0 +1,35 @@
+// Copyright (C) 2021 Paul Amonson
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+plugins {
+    id 'idea'
+    id 'jacoco'
+    id 'groovy'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'http://synology:8090/releases'
+        allowInsecureProtocol = true
+    }
+}
+
+dependencies {
+    implementation group: 'com.amonson', name: 'libs', version: '1.7.0'
+
+    testImplementation 'org.codehaus.groovy:groovy:3.0.8'
+    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+application {
+    mainClass = 'backups.Backup'
+}
+
+test {
+    useJUnitPlatform()
+}
