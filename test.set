@@ -1,1 +1,20 @@
-{"name":"TestSet","destination":{"path":"/home/bearstud/Code/backups/build/tmp"},"key-file":{"path":"/home/bearstud/Code/backups/test.key"},"set-file":{"path":"/home/bearstud/Code/backups/test.set"},"source-folders":[{"path":"/home/bearstud/Code/backups/src"},{"path":"/home/bearstud/Code/backups/gradle"}]}
+{
+  "name": "TestSet",
+  "destination": {
+    "path": "/home/pdamons/Code/backups/test_backup"
+  },
+  "key-file": {
+    "path": "/home/pdamons/Code/backups/test.key"
+  },
+  "set-file": {
+    "path": "/home/pdamons/Code/backups/test.set"
+  },
+  "source-folders": [
+    {
+      "path": "/home/pdamons/Code/backups/src"
+    },
+    {
+      "path": "/home/pdamons/Code/backups/gradle"
+    }
+  ]
+}

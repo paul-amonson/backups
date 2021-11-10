@@ -18,6 +18,7 @@ class BackupSet implements Iterable<File> {
     String getName() { return name_; }
     File getDestination() { return destinationFolder_; }
     File getSetFile() { return setFile_; }
+    File getSetFileIndex() { return new File(setFile_.toString() + ".index"); }
     File getKeyFile() { return keyFile_; }
 
     @Override
