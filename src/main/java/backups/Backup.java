@@ -4,87 +4,47 @@
 //
 package backups;
 
-import com.amonson.crypto.KeyData;
 import org.apache.logging.log4j.*;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.jar.Manifest;
 
 /**
  * Do backups and restores.
  *
- * generate-key keyfile
- * create-backup-set folder(s) setfile
- * backup set-files(s) [--key=keyfile] (default ./backups.key)
- * restore set-file(s) [alternate-root-folder] [--key=keyfile] (default ./backups.key)
+ * generate-key {keyfile | -} [--force]
+ * create-backup-set --key=keyfile --destination=dest-folder {folder [folder [...]]} {setfile}
+ * backup set-files(s)
+ * restore set-file(s) [alternate-root-folder]
  */
-@Command(name = "backups", versionProvider=Backup.Version.class, description = "Tool to perform a compressed and encrypted backup.")
-public class Backup {
+@Command(subcommands = {GenerateKey.class, CreateBackupSet.class, DoBackup.class}, name = "backups",
+        versionProvider=Backup.Version.class, mixinStandardHelpOptions = true,
+        description = "Tool to perform a compressed and encrypted backup.")
+public class Backup implements Callable<Integer> {
     public static void main(String[] args) {
-        Logger logger = LogManager.getRootLogger();
-        ((org.apache.logging.log4j.core.Logger)logger).setLevel(Level.DEBUG); // Set level.
-        int exitCode = 0;
+        String logLevel = "INFO";
+        if(System.getenv().containsKey("LOG_LEVEL"))
+            logLevel = System.getenv("LOG_LEVEL");
+        logLevel = System.getProperty("logLevel", logLevel);
+        ((org.apache.logging.log4j.core.Logger)LogManager.getRootLogger()).setLevel(Level.getLevel(logLevel));
 
-        try {
-            Backup app = new Backup(logger);
-            app.initialize();
-            exitCode = app.runApp(args);
-        } catch(Exception e) {
-            logger.fatal("Unknown error occurred!");
-            logger.catching(Level.DEBUG, e);
-            exitCode = 2;
-        }
-        finally {
-            System.exit(exitCode);
-        }
+        System.exit(new CommandLine(new Backup()).execute(args));
     }
 
-    private Backup(Logger logger) {
-        log_ = logger;
-    }
+    private Backup() { log_ = LogManager.getRootLogger(); }
 
-    private void initialize() {
-        // Setup sub-command dispatch
-        dispatch_.put("generate-key", this::doGenerateKey);
-
-        // Setup CLI parser
-    }
-
-    private int runApp(String[] args) {
-        try {
-            CommandLine commandLine = cliParser_.parse(options_, args);
-            if(commandLine.hasOption('h')) {
-                System.out.println("HELP");
-                return 0;
-            }
-            String subCommand = commandLine.getArgList().get(0);
-            return dispatch_.get(subCommand).handle(commandLine);
-        } catch(ParseException | IndexOutOfBoundsException e) {
-            log_.fatal("Commandline parsing failed!");
-            log_.catching(Level.DEBUG, e);
-            return 1;
-        }
-    }
-
-    private int doGenerateKey(CommandLine commandLine) {
-        return 0;
+    @Override public Integer call() throws Exception {
+        log_.error("Bad command line (no options or parameters)!");
+        return new CommandLine(new Backup()).execute("-h");
     }
 
     private final Logger log_;
-    private       KeyData key_;
 
-    // Dispatcher Code
-    @FunctionalInterface private interface CommandHandler { int handle(CommandLine cl); }
-    private final Map<String,CommandHandler> dispatch_ = new HashMap<>();
-
+    // Version provider...
     public static class Version implements CommandLine.IVersionProvider {
         @Override public String[] getVersion() throws Exception {
             Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
@@ -94,7 +54,7 @@ public class Backup {
                 String version = manifest.getMainAttributes().getValue("Implementation-Version");
                 return new String[] {name + " " + version};
             }
-            return new String[] {"FAILED"};
+            return new String[] {"No Version"};
         }
     }
 }

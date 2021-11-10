@@ -28,7 +28,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-project.version = '1.0'
+project.version = '0.1.1'
 project.mainClassName = 'backups.Backup'
 application.mainClass = project.mainClassName
 
@@ -43,6 +43,6 @@ jar {
     }
     manifest {
         attributes("Main-Class": project.mainClassName, "Implementation-Title": project.name,
-                "Implementation-Version": project.version)
+                "Implementation-Version": project.version, "Multi-Release": true)
     }
 }
