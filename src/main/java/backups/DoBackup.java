@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "do-backup", description = "Create a new backup set file",
+@CommandLine.Command(name = "do-backup", description = "Backup files in a backup set",
         mixinStandardHelpOptions = true)
 public class DoBackup implements Callable<Integer> {
     @Override
@@ -66,16 +66,16 @@ public class DoBackup implements Callable<Integer> {
         System.out.println("");
         if(dryRun_)
             System.out.println("*** DRY RUN ONLY");
-        System.out.printf("+----------------------------------------+\n");
+        System.out.print ("+----------------------------------------+\n");
         System.out.printf("| Backed up files:          %12d |\n", backupedFiles_);
         System.out.printf("| Skipped files:            %12d |\n", skippedFiles_);
         System.out.printf("| New files backed up:      %12d |\n", newFiles_);
         System.out.printf("| Apparently Deleted files: %12d |\n", deletedFiles_);
         System.out.printf("| Errored files:            %12d |\n", erroredFiles_);
         System.out.printf("| Total processed files:    %12d |\n", totalFiles_);
-        System.out.printf("+----------------------------------------+\n");
+        System.out.print ("+----------------------------------------+\n");
         System.out.printf("| Total Time (m:ss):        %9d:%02d |\n", seconds / 60, seconds % 60);
-        System.out.printf("+----------------------------------------+\n");
+        System.out.print ("+----------------------------------------+\n");
     }
 
     private void walkFileTrees(BackupSet set, BackupIndex index) throws IOException {
@@ -121,10 +121,11 @@ public class DoBackup implements Callable<Integer> {
         for(BackupIndexEntry entry: index) {
             if(entry.wasChecked()) {
                 if (entry.needsBackup()) {
-                    if (backupEntry(set.getDestination(), entry)) {
+                    if (backupEntry(set.getDestination(), entry, set.getKeyFile())) {
                         entry.updateAfterBackedUp();
                         backupedFiles_ += 1;
-                    }
+                    } else
+                        entry.resetFileTime();
                 } else {
                     log_.info("Skipped backing up file:\n    {}", entry.getFile());
                     skippedFiles_ += 1;
@@ -136,26 +137,31 @@ public class DoBackup implements Callable<Integer> {
         }
     }
 
-    private boolean backupEntry(File folder, BackupIndexEntry entry) throws IOException {
-        File target = new File(folder.toString() + File.separator + entry.getId() + ".bin");
-        if(!dryRun_)
-            return copyFile(entry.getFile(), target);
-        else
-            log_.debug("DRY RUN: Backing up:\n    {}\n    {}'.", entry.getFile(), target);
-        return true;
+    private boolean backupEntry(File folder, BackupIndexEntry entry, File keyFile) throws IOException {
+        File target = new File(folder, entry.getId() + ".bin");
+        return copyFile(entry.getFile(), target, keyFile);
     }
 
-    private boolean copyFile(File src, File target) {
+    private boolean copyFile(File src, File target, File keyFile) {
         log_.info("Backing up:\n    {}\n    {}", src, target);
         try {
-            Files.copy(src.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES,
-                    StandardCopyOption.REPLACE_EXISTING);
+            if(!dryRun_)
+                if(keyFile == null)
+                    Files.copy(src.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES,
+                            StandardCopyOption.REPLACE_EXISTING);
+                else
+                    compressAndEncryptCopy(src, target, keyFile);
+                // else Use Encryption
             return true;
         } catch(IOException e) {
             log_.error("Failed to backup file:\n    {}!", src);
             erroredFiles_ += 1;
             return false;
         }
+    }
+
+    private void compressAndEncryptCopy(File src, File target, File keyFile) throws IOException {
+        // TODO:
     }
 
     @CommandLine.Option(names = {"--dry-run"}, description = "Attempt everything except the actual backup of files.")

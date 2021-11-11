@@ -32,6 +32,10 @@ class BackupIndexEntry {
         lastSize_ = file_.length();
     }
 
+    void resetFileTime() {
+        lastModified_ = 0L;
+    }
+
     File getFile() { return file_; }
     String getId() { return fileId_; }
     long getLastSize() { return lastSize_; }

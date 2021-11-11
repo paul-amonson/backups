@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,6 +22,13 @@ public class BackupSetIndexFactory {
             return loadFile(indexFile);
         else
             return createFile(indexFile);
+    }
+
+    BackupIndex loadOnly() throws IOException {
+        File indexFile = set_.getSetFileIndex();
+        if(indexFile.exists())
+            return loadFile(indexFile);
+        throw new FileNotFoundException("Missing index file: " + indexFile);
     }
 
     private BackupIndex createFile(File indexFile) throws IOException {

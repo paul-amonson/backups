@@ -21,7 +21,7 @@ import java.util.jar.Manifest;
  * backup set-files(s)
  * restore set-file(s) [alternate-root-folder]
  */
-@Command(subcommands = {GenerateKey.class, CreateBackupSet.class, DoBackup.class}, name = "backups",
+@Command(subcommands = {GenerateKey.class, CreateBackupSet.class, DoBackup.class, DoRestore.class}, name = "backups",
         versionProvider=Backup.Version.class, mixinStandardHelpOptions = true,
         description = "Tool to perform a compressed and encrypted backup.")
 public class Backup implements Callable<Integer> {
