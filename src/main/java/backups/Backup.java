@@ -4,7 +4,9 @@
 //
 package backups;
 
-import org.apache.logging.log4j.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -48,12 +50,15 @@ public class Backup implements Callable<Integer> {
     // Version provider...
     public static class Version implements CommandLine.IVersionProvider {
         @Override public String[] getVersion() throws Exception {
-            Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
-            if(resources.hasMoreElements()) {
+            Enumeration<URL> resources = Backup.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+            while(resources.hasMoreElements()) {
                 Manifest manifest = new Manifest(resources.nextElement().openStream());
-                String name = manifest.getMainAttributes().getValue("Implementation-Title");
-                String version = manifest.getMainAttributes().getValue("Implementation-Version");
-                return new String[] {name + " (" + version + ")"};
+                String theClass = manifest.getMainAttributes().getValue("Main-Class");
+                if(theClass.equals("backups.Backup")) {
+                    String name = manifest.getMainAttributes().getValue("Implementation-Title");
+                    String version = manifest.getMainAttributes().getValue("Implementation-Version");
+                    return new String[]{name + " (" + version + ")"};
+                }
             }
             return new String[] {"No Version"};
         }

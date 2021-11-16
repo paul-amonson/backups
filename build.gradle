@@ -11,16 +11,12 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven {
-        url = 'http://synology:8090/releases'
-        allowInsecureProtocol = true
-    }
 }
 
 String gitVersionString() {
-    def origin = "master"
+    def origin = "main"
     if(System.properties.containsKey("OfficialBuild"))
-        origin = "origin/master"
+        origin = "origin/main"
     def stdout = new ByteArrayOutputStream()
     def stderr = new ByteArrayOutputStream()
     exec {
@@ -30,14 +26,12 @@ String gitVersionString() {
         commandLine "git", "--git-dir=${rootProject.projectDir}/.git", "describe", origin, "--tags"
     }
     String localVersion = stdout.toString().trim()
-    return (localVersion == null || localVersion.isEmpty())?'0.6.0':localVersion
+    return (localVersion == null || localVersion.isEmpty())?'0.7.0':localVersion
 }
 
-version = gitVersionString()
-
 dependencies {
-    implementation group: 'info.picocli', name: 'picocli', version: '4.6.1'
-    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
+    implementation group: 'info.picocli', name: 'picocli', version: '4.6.2'
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.2'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.8'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
 
@@ -46,7 +40,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-project.version = version
+project.version = gitVersionString()
 project.mainClassName = 'backups.Backup'
 application.mainClass = project.mainClassName
 
