@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -33,7 +32,7 @@ public class DoRestore implements Callable<Integer> {
             }
             int rv = 0;
             for(File setFile: setFiles_) {
-                if(!DoRestoreSet(setFile)) {
+                if(!doRestoreSet(setFile)) {
                     rv = 3;
                     log_.warn("*** Finished restore set with error: {}", setFile.getCanonicalPath());
                 } else
@@ -42,12 +41,12 @@ public class DoRestore implements Callable<Integer> {
             printReport(Instant.now().getEpochSecond() - start);
             return rv;
         } catch(IllegalArgumentException e) {
-            LogManager.getRootLogger().error(e.getMessage());
+            log_.error(e.getMessage());
             return 2;
         }
     }
 
-    private boolean DoRestoreSet(File setFile) {
+    private boolean doRestoreSet(File setFile) {
         try {
             BackupSet set = new Gson().fromJson(Files.readString(setFile.toPath(), StandardCharsets.UTF_8),
                     BackupSet.class);
@@ -60,7 +59,7 @@ public class DoRestore implements Callable<Integer> {
             for(BackupIndexEntry entry: index) {
                 File src = new File(set.getDestination(), entry.getId() + ".bin");
                 File target = new File(chroot_, entry.getFile().toString());
-                log_.debug("*** Target Location: {}", target);
+                log_.debug("*** Destination Location: {}", target);
                 if(force_ || checkDoCopy(src, target)) {
                     copyFile(src, target, set.getKeyFile());
                 } else {
@@ -76,7 +75,7 @@ public class DoRestore implements Callable<Integer> {
     }
 
     private void printReport(long seconds) {
-        System.out.println("");
+        System.out.println();
         if(dryRun_)
             System.out.println("*** DRY RUN ONLY");
         System.out.print ("+----------------------------------------+\n");
@@ -93,7 +92,7 @@ public class DoRestore implements Callable<Integer> {
         return !target.exists() || src.lastModified() > target.lastModified();
     }
 
-    private boolean copyFile(File src, File target, File keyFile) {
+    private void copyFile(File src, File target, File keyFile) {
         log_.info("Restoring file:\n    {}\n    {}", src, target);
         try {
             KeyData key = null;
@@ -104,12 +103,10 @@ public class DoRestore implements Callable<Integer> {
                 Copier.copyFile(src, target, key, Copier.Direction.Decryption);
             }
             restoredFiles_ += 1;
-            return true;
         } catch(SecurityException | IOException e) {
             log_.error("Failed to restore file:\n    {}!", src);
             log_.catching(Level.DEBUG, e);
             erroredFiles_ += 1;
-            return false;
         }
     }
 
@@ -117,7 +114,8 @@ public class DoRestore implements Callable<Integer> {
     private boolean dryRun_ = false; // Assigned by picocli dynamically...
     @CommandLine.Option(names = {"--force"}, description = "Force overwrite of all existing files in the destination.")
     private boolean force_ = false; // Assigned by picocli dynamically...
-    @CommandLine.Option(names = {"--chroot"}, description = "Change to a root other than '/' for the restored files.")
+    @CommandLine.Option(names = {"--chroot"}, description = "Change to a root other than '/' for the restored files.",
+            paramLabel = "new-root-folder")
     private File chroot_ = new File(File.separator); // Assigned by picocli dynamically...
 
     @CommandLine.Parameters(paramLabel="backup_set_files", description =
