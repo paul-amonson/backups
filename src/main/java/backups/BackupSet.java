@@ -3,6 +3,7 @@ package backups;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,9 +17,11 @@ class BackupSet implements Iterable<File> {
     }
 
     String getName() { return name_; }
-    File getDestination() { return destinationFolder_; }
+    File getDestination() { return Paths.get(destinationFolder_.toString(), setFile_.getName()).toFile(); }
     File getSetFile() { return setFile_; }
-    File getSetFileIndex() { return new File(setFile_.toString() + ".index"); }
+    File getSetFileIndex() {
+        return Paths.get(getDestination().toString(), setFile_.getName() + ".index").toFile();
+    }
     File getKeyFile() { return keyFile_; }
 
     @Override

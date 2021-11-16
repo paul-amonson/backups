@@ -17,6 +17,24 @@ repositories {
     }
 }
 
+String gitVersionString() {
+    def origin = "master"
+    if(System.properties.containsKey("OfficialBuild"))
+        origin = "origin/master"
+    def stdout = new ByteArrayOutputStream()
+    def stderr = new ByteArrayOutputStream()
+    exec {
+        ignoreExitValue = true
+        standardOutput = stdout
+        errorOutput = stderr
+        commandLine "git", "--git-dir=${rootProject.projectDir}/.git", "describe", origin, "--tags"
+    }
+    String localVersion = stdout.toString().trim()
+    return (localVersion == null || localVersion.isEmpty())?'0.6.0':localVersion
+}
+
+version = gitVersionString()
+
 dependencies {
     implementation group: 'info.picocli', name: 'picocli', version: '4.6.1'
     annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
@@ -28,7 +46,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-project.version = '0.1.1'
+project.version = version
 project.mainClassName = 'backups.Backup'
 application.mainClass = project.mainClassName
 

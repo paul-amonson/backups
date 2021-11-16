@@ -1,5 +1,7 @@
 package backups;
 
+import com.amonson.crypto.Copier;
+import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
@@ -20,9 +22,10 @@ class BackupIndex implements Iterable<BackupIndexEntry> {
         entries_.putIfAbsent(file.getAbsolutePath(), new BackupIndexEntry(file));
     }
 
-    void saveIndex(File indexFile) throws IOException {
+    void saveIndex(File indexFile, File keyFile) throws IOException {
         String json = new Gson().toJson(this, BackupIndex.class);
-        Files.writeString(indexFile.toPath(), json, StandardCharsets.UTF_8);
+        KeyData key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+        Copier.writeStringEncrypted(json, indexFile, key);
     }
 
     BackupIndexEntry getEntry(String absPath) {

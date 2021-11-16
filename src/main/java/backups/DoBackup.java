@@ -54,10 +54,10 @@ public class DoBackup implements Callable<Integer> {
             System.out.printf("====  %s  ====\n", set.getName());
             log_.info("*** Starting backup set: {}", setFile.getCanonicalPath());
             BackupSetIndexFactory factory = new BackupSetIndexFactory(set, dryRun_);
-            BackupIndex index = factory.createOrLoad();
+            BackupIndex index = factory.createOrLoad(set.getKeyFile());
             walkFileTrees(set, index);
             backupIndex(set, index);
-            index.saveIndex(set.getSetFileIndex());
+            index.saveIndex(set.getSetFileIndex(), set.getKeyFile());
         } catch(IOException e) {
             log_.fatal("Backup failed!");
             return false;

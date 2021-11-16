@@ -10,7 +10,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.Callable;
 
-@Command(name = "generate-key", description = "Generate a new key to a filename.", mixinStandardHelpOptions = true)
+@Command(name = "generate-key", description = "Generate a new key and save to a filename or stdout (-).", mixinStandardHelpOptions = true)
 public class GenerateKey implements Callable<Integer> {
     public GenerateKey() {
         log_ = LogManager.getRootLogger();
@@ -31,7 +31,7 @@ public class GenerateKey implements Callable<Integer> {
         return 0;
     }
 
-    @Parameters(description = "Output key filename.")
+    @Parameters(paramLabel="output_file", description = "Output key filename or '-' for output to console.")
     private File outputFile_; // Assigned by picocli dynamically...
 
     @Option(names = {"-f", "--force"}, description = "Force overwrite of the keyfile.")

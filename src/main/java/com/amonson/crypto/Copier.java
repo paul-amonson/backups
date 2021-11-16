@@ -6,6 +6,7 @@ package com.amonson.crypto;
 
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
@@ -38,6 +39,49 @@ public final class Copier {
             decryptCopy(source, destination, key);
     }
 
+    /**
+     * Write a string to a file and encrypt it.
+     *
+     * @param data The string to write as a file.
+     * @param outputFile The file to write to.
+     * @param key The encryption key.
+     * @throws IOException On IO or crypto errors.
+     */
+    public static void writeStringEncrypted(String data, File outputFile, KeyData key) throws IOException {
+        try (InputStream fileStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))) {
+            try (OutputStream encryptStream = new EncryptedFileOutputStream(outputFile, key)) {
+                try (OutputStream gzipStream = new GZIPOutputStream(encryptStream)) {
+                    fileStream.transferTo(gzipStream);
+                }
+            }
+        } catch(InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException |
+                NoSuchPaddingException e) {
+            throw new IOException("Encryption error occurred!", e);
+        }
+    }
+
+    /**
+     * Read a string from a file and decrypting it.
+     *
+     * @param inputFile File to read encrypted data from.
+     * @param key The decryption key.
+     * @return The decrypted string.
+     * @throws IOException On IO or crypto errors.
+     */
+    public static String readStringDecrypted(File inputFile, KeyData key) throws IOException {
+        try (InputStream decryptStream = new EncryptedFileInputStream(inputFile, key)) {
+            try (ByteArrayOutputStream fileStream = new ByteArrayOutputStream()) {
+                try (InputStream gzipStream = new GZIPInputStream(decryptStream)) {
+                    gzipStream.transferTo(fileStream);
+                    return fileStream.toString(StandardCharsets.UTF_8);
+                }
+            }
+        } catch(InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException |
+                NoSuchPaddingException e) {
+            throw new IOException("Decryption error occurred!", e);
+        }
+    }
+
     private static void encryptCopy(File source, File destination, KeyData key) throws IOException {
         try (InputStream fileStream = new FileInputStream(source)) {
             try (OutputStream encryptStream = new EncryptedFileOutputStream(destination, key)) {
@@ -60,7 +104,7 @@ public final class Copier {
             }
         } catch(InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException |
                 NoSuchPaddingException e) {
-            throw new IOException("Encryption error occurred!", e);
+            throw new IOException("Decryption error occurred!", e);
         }
     }
 

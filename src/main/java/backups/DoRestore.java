@@ -55,7 +55,7 @@ public class DoRestore implements Callable<Integer> {
             System.out.printf("====  %s  ====\n", set.getName());
             log_.info("*** Starting to restore backup set: {}", setFile.getCanonicalPath());
             BackupSetIndexFactory factory = new BackupSetIndexFactory(set, dryRun_);
-            BackupIndex index = factory.loadOnly();
+            BackupIndex index = factory.loadOnly(set.getKeyFile());
             totalFiles_ = index.size();
             for(BackupIndexEntry entry: index) {
                 File src = new File(set.getDestination(), entry.getId() + ".bin");
