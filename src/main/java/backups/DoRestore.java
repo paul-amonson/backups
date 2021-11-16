@@ -1,5 +1,7 @@
 package backups;
 
+import com.amonson.crypto.Copier;
+import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -94,13 +96,13 @@ public class DoRestore implements Callable<Integer> {
     private boolean copyFile(File src, File target, File keyFile) {
         log_.info("Restoring file:\n    {}\n    {}", src, target);
         try {
-            if(!dryRun_)
+            KeyData key = null;
+            if(keyFile != null)
+                key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+            if(!dryRun_) {
                 target.getParentFile().mkdirs();
-                if(keyFile == null)
-                    Files.copy(src.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES,
-                            StandardCopyOption.REPLACE_EXISTING);
-                else
-                    decryptAndDecompressCopy(src, target, keyFile);
+                Copier.copyFile(src, target, key, Copier.Direction.Decryption);
+            }
             restoredFiles_ += 1;
             return true;
         } catch(SecurityException | IOException e) {
@@ -109,10 +111,6 @@ public class DoRestore implements Callable<Integer> {
             erroredFiles_ += 1;
             return false;
         }
-    }
-
-    private void decryptAndDecompressCopy(File src, File target, File keyFile) throws IOException {
-        // TODO
     }
 
     @CommandLine.Option(names = {"--dry-run"}, description = "Attempt everything except the actual restore of files.")

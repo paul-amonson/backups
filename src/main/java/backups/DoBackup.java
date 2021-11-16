@@ -1,6 +1,9 @@
 package backups;
 
+import com.amonson.crypto.Copier;
+import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -145,23 +148,17 @@ public class DoBackup implements Callable<Integer> {
     private boolean copyFile(File src, File target, File keyFile) {
         log_.info("Backing up:\n    {}\n    {}", src, target);
         try {
+            KeyData key = null;
+            if(keyFile != null)
+                key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
             if(!dryRun_)
-                if(keyFile == null)
-                    Files.copy(src.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES,
-                            StandardCopyOption.REPLACE_EXISTING);
-                else
-                    compressAndEncryptCopy(src, target, keyFile);
-                // else Use Encryption
+                Copier.copyFile(src, target, key, Copier.Direction.Encryption);
             return true;
         } catch(IOException e) {
             log_.error("Failed to backup file:\n    {}!", src);
-            erroredFiles_ += 1;
+            log_.catching(Level.DEBUG, e);
             return false;
         }
-    }
-
-    private void compressAndEncryptCopy(File src, File target, File keyFile) throws IOException {
-        // TODO:
     }
 
     @CommandLine.Option(names = {"--dry-run"}, description = "Attempt everything except the actual backup of files.")
