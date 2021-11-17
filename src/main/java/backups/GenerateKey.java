@@ -1,3 +1,7 @@
+// Copyright (C) 2021 Paul Amonson
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 package backups;
 
 import com.amonson.crypto.KeyData;

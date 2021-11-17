@@ -1,3 +1,7 @@
+// Copyright (C) 2021 Paul Amonson
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 package backups;
 
 import com.google.gson.Gson;
@@ -40,19 +44,19 @@ public class CreateBackupSet implements Callable<Integer> {
 
     private void checkFolderWrite(File folder) throws IllegalAccessException {
         if(!folder.isDirectory() || !folder.canWrite())
-            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is now writable!",
+            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is not writable!",
                     folder));
     }
 
     private void checkFolderRead(File folder) throws IllegalAccessException {
         if(!folder.isDirectory() || !folder.canRead())
-            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is now readable!",
+            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is not readable!",
                     folder));
     }
 
     private void checkFileRead(File file) throws IllegalAccessException {
         if(!file.isFile() || !file.canRead())
-            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is now readable!",
+            throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is not readable!",
                     file));
     }
 
@@ -72,7 +76,7 @@ public class CreateBackupSet implements Callable<Integer> {
     File keyFile_;
 
     @CommandLine.Option(paramLabel = "set_file",names = {"-s", "--set-file"},
-            description = "The encryption/decryption key used in the backup set.", required = true)
+            description = "The backup set filename and path.", required = true)
     File setFile_;
 
     @CommandLine.Parameters(paramLabel="source_folders", description = "Folder(s) to include in the backup set.",

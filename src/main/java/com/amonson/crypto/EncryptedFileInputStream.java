@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2019 Paul Amonson
+// Copyright (C) 2018-2021 Paul Amonson
 //
 // SPDX-License-Identifier: Apache-2.0
 //
