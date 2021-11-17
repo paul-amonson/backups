@@ -24,7 +24,7 @@ String gitVersionString() {
         commandLine "git", "--git-dir=${rootProject.projectDir}/.git", "describe", origin, "--tags"
     }
     String localVersion = stdout.toString().trim()
-    return (localVersion == null || localVersion.isEmpty())?'0.7.0':localVersion
+    return (localVersion == null || localVersion.isEmpty())?'0.0.0':localVersion
 }
 
 dependencies {
@@ -33,6 +33,9 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.8'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
 }
+
+sourceCompatibility = 11
+targetCompatibility = 11
 
 project.version = gitVersionString()
 project.mainClassName = 'backups.Backup'
