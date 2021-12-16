@@ -79,6 +79,10 @@ public class CreateBackupSet implements Callable<Integer> {
             description = "The backup set filename and path.", required = true)
     File setFile_;
 
+    @CommandLine.Option(paramLabel = "extension",names = {"-e", "--extension"},
+            description = "The backup set's encrypted filename extension.", defaultValue = "aes")
+    String extension_;
+
     @CommandLine.Parameters(paramLabel="source_folders", description = "Folder(s) to include in the backup set.",
             arity = "1..*")
     List<File> dataFolders_;

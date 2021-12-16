@@ -54,6 +54,7 @@ public class DoRestore implements Callable<Integer> {
         try {
             BackupSet set = new Gson().fromJson(Files.readString(setFile.toPath(), StandardCharsets.UTF_8),
                     BackupSet.class);
+            String extension = set.getExtension();
             System.out.println("\n==========================================================================================");
             System.out.printf("====  %s  ====\n", set.getName());
             log_.info("*** Starting to restore backup set: {}", setFile.getCanonicalPath());
@@ -61,7 +62,7 @@ public class DoRestore implements Callable<Integer> {
             BackupIndex index = factory.loadOnly(set.getKeyFile());
             totalFiles_ = index.size();
             for(BackupIndexEntry entry: index) {
-                File src = new File(set.getDestination(), entry.getId() + ".bin");
+                File src = new File(set.getDestination(), entry.getId() + "." + extension);
                 File target = new File(chroot_, entry.getFile().toString());
                 log_.debug("*** Destination Location: {}", target);
                 if(force_ || checkDoCopy(src, target)) {

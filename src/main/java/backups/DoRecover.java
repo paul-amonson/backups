@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.concurrent.Callable;
 
@@ -42,9 +43,10 @@ public class DoRecover implements Callable<Integer> {
     private boolean doRecoverFiles(File indexFile, File destination) {
         try {
             BackupIndex index = loadIndexFile(indexFile, keyFile_);
+            String extension = getExtensionFromIndex(index);
             log_.info("Starting to recover files from index file: {}", indexFile);
             for(BackupIndexEntry entry: index) {
-                File src = new File(destination, entry.getId() + ".bin");
+                File src = new File(destination, entry.getId() + "." + extension);
                 File target = new File(chroot_, entry.getFile().toString());
                 log_.debug("*** Destination Location: {}", target);
                 copyFile(src, target, keyFile_);
@@ -54,6 +56,11 @@ public class DoRecover implements Callable<Integer> {
             return false;
         }
         return true;
+    }
+
+    private String getExtensionFromIndex(BackupIndex index) {
+        String filename = index.filenameIterator().next();
+        return filename.substring(filename.lastIndexOf('.') + 1);
     }
 
     private BackupIndex loadIndexFile(File indexFile, File keyFile) throws IOException {

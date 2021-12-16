@@ -18,6 +18,7 @@ class BackupSet implements Iterable<File> {
         keyFile_ = set.keyFile_;
         dataFolders_ = set.dataFolders_;
         name_ = set.name_;
+        extension_ = set.extension_;
     }
 
     String getName() { return name_; }
@@ -27,6 +28,7 @@ class BackupSet implements Iterable<File> {
         return Paths.get(getDestination().toString(), setFile_.getName() + ".index").toFile();
     }
     File getKeyFile() { return keyFile_; }
+    String getExtension() { return extension_; }
 
     @Override
     public Iterator<File> iterator() {
@@ -38,4 +40,5 @@ class BackupSet implements Iterable<File> {
     @SerializedName(value="key-file")       private File keyFile_;
     @SerializedName(value="set-file")       private File setFile_;
     @SerializedName(value="source-folders") private List<File> dataFolders_;
+    @SerializedName(value="extension")      private String extension_;
 }

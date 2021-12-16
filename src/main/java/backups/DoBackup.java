@@ -54,6 +54,7 @@ public class DoBackup implements Callable<Integer> {
         try {
             BackupSet set = new Gson().fromJson(Files.readString(setFile.toPath(), StandardCharsets.UTF_8),
                     BackupSet.class);
+            extension_ = set.getExtension();
             System.out.println("\n==========================================================================================");
             System.out.printf("====  %s  ====\n", set.getName());
             log_.info("*** Starting backup set: {}", setFile.getCanonicalPath());
@@ -145,7 +146,7 @@ public class DoBackup implements Callable<Integer> {
     }
 
     private boolean backupEntry(File folder, BackupIndexEntry entry, File keyFile) throws IOException {
-        File target = new File(folder, entry.getId() + ".bin");
+        File target = new File(folder, entry.getId() + "." + extension_);
         return copyFile(entry.getFile(), target, keyFile);
     }
 
@@ -179,4 +180,5 @@ public class DoBackup implements Callable<Integer> {
     private int totalFiles_ = 0;
     private int erroredFiles_ = 0;
     private int deletedFiles_ = 0;
+    private String extension_ = "aes";
 }
