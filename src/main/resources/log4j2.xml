@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="10">
+    <Appenders>
+        <RollingFile name="FILE"
+                     fileName="backup.log"
+                     filePattern="%d{yyyy-MM-dd}-backup.log.gz"
+                     filePermissions="rw-------">
+            <PatternLayout pattern="%highlight{%level - %m}%n" />
+            <DefaultRolloverStrategy fileIndex="min" max="4"/>
+            <Policies>
+                <OnStartupTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{%level - %m}%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="FILE" />
+            <AppenderRef ref="STDOUT" />
+        </Root>
+    </Loggers>
+</Configuration>
