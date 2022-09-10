@@ -7,6 +7,7 @@ package backups;
 import com.amonson.crypto.Copier;
 import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,7 +53,7 @@ public class DoRestore implements Callable<Integer> {
 
     private boolean doRestoreSet(File setFile) {
         try {
-            BackupSet set = new Gson().fromJson(Files.readString(setFile.toPath(), StandardCharsets.UTF_8),
+            BackupSet set = newGson().fromJson(Files.readString(setFile.toPath(), StandardCharsets.UTF_8),
                     BackupSet.class);
             String extension = set.getExtension();
             System.out.println("\n==========================================================================================");
@@ -102,7 +103,7 @@ public class DoRestore implements Callable<Integer> {
         try {
             KeyData key = null;
             if(keyFile != null)
-                key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+                key = newGson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
             if(!dryRun_) {
                 target.getParentFile().mkdirs();
                 Copier.copyFile(src, target, key, Copier.Direction.Decryption);
@@ -113,6 +114,14 @@ public class DoRestore implements Callable<Integer> {
             log_.catching(Level.DEBUG, e);
             erroredFiles_ += 1;
         }
+    }
+
+    private Gson newGson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(BackupSet.class, BackupSet.getGSonAdapter());
+        builder.registerTypeAdapter(KeyData.class, KeyData.getGSonAdapter());
+        builder.registerTypeAdapter(BackupIndex.class, BackupIndex.getGSonAdapter());
+        return builder.create();
     }
 
     @CommandLine.Option(names = {"--dry-run"}, description = "Attempt everything except the actual restore of files.")

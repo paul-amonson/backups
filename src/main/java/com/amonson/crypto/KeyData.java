@@ -9,14 +9,16 @@ import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
-
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.annotations.Since;
+import java.io.IOException;
+import com.google.gson.stream.*;
+import com.google.gson.*;
 
 /**
  * Class to create/store initialization vectors and keys for AES encryption/decryption.
  */
 public class KeyData {
+    private KeyData() {}
+
     /**
      * Constructor that takes a IV and Key Strings for AES encryption encoded with Base64.
      * @param iv The Base64 encoded initialization vector.
@@ -45,6 +47,45 @@ public class KeyData {
         return new KeyData(sIv, sKey);
     }
 
+    public static TypeAdapter<KeyData> getGSonAdapter() {
+        return new TypeAdapter<>() {
+            @Override public KeyData read(JsonReader reader) throws IOException {
+                KeyData data = new KeyData();
+                reader.beginObject();
+                while(reader.hasNext()) {
+                    JsonToken token = reader.peek();
+                    String fieldName = null;
+                    if (token.equals(JsonToken.NAME)) {
+                        //get the current token
+                        fieldName = reader.nextName();
+                    }
+
+                    if ("iv".equals(fieldName) || "A".equals(fieldName)) {
+                        //move to next token
+                        token = reader.peek();
+                        data.iv_ = reader.nextString();
+                    }
+
+                    if("key".equals(fieldName) || "B".equals(fieldName)) {
+                        //move to next token
+                        token = reader.peek();
+                        data.key_ = reader.nextString();
+                    }
+                }
+                reader.endObject();
+                return data;
+            }
+            @Override public void write(JsonWriter writer, KeyData data) throws IOException {
+                writer.beginObject(); 
+                writer.name("A"); 
+                writer.value(data.IV()); 
+                writer.name("B"); 
+                writer.value(data.key()); 
+                writer.endObject(); 
+            }
+        };
+    }
+
     /**
      * IV Accessor method.
      * @return The base64 encoded initialization vector.
@@ -62,8 +103,8 @@ public class KeyData {
     }
 
     /**
-     * Convert object to human readable representation.
-     * @return A human readable string representing the object.
+     * Convert object to human-readable representation.
+     * @return A human-readable string representing the object.
      */
     @Override
     public String toString() {
@@ -76,9 +117,8 @@ public class KeyData {
      */
     @Override
     public boolean equals(Object o) {
-        if(o instanceof KeyData) {
-            KeyData kd = (KeyData)o;
-            return kd.iv_.equals(iv_) && kd.key_.equals(key_);
+        if(o instanceof KeyData keyData) {
+            return keyData.iv_.equals(iv_) && keyData.key_.equals(key_);
         }
         return super.equals(o);
     }
@@ -108,8 +148,8 @@ public class KeyData {
         return Base64.getDecoder().decode(key_);
     }
 
-    @Since(value=1.7) @SerializedName(value = "A", alternate = "iv") String iv_;
-    @Since(value=1.7) @SerializedName(value="B", alternate = "key") String key_;
+    String iv_;
+    String key_;
 
     // Strong but may block on some OSes. Try "NativePRNGNonBlocking" if you have problems.
     private static String getAlgorithm() {

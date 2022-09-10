@@ -7,6 +7,7 @@ package backups;
 import com.amonson.crypto.Copier;
 import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,9 +65,9 @@ public class DoRecover implements Callable<Integer> {
     }
 
     private BackupIndex loadIndexFile(File indexFile, File keyFile) throws IOException {
-        KeyData key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+        KeyData key = newGson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
         String json = Copier.readStringDecrypted(indexFile, key);
-        return new Gson().fromJson(json, BackupIndex.class);
+        return newGson().fromJson(json, BackupIndex.class);
     }
 
     private void printReport(long seconds) {
@@ -86,7 +87,7 @@ public class DoRecover implements Callable<Integer> {
         try {
             KeyData key = null;
             if(keyFile != null)
-                key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+                key = newGson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
             if(!dryRun_) {
                 target.getParentFile().mkdirs();
                 Copier.copyFile(src, target, key, Copier.Direction.Decryption);
@@ -97,6 +98,14 @@ public class DoRecover implements Callable<Integer> {
             log_.catching(Level.DEBUG, e);
             erroredFiles_ += 1;
         }
+    }
+
+    private Gson newGson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(BackupSet.class, BackupSet.getGSonAdapter());
+        builder.registerTypeAdapter(KeyData.class, KeyData.getGSonAdapter());
+        builder.registerTypeAdapter(BackupIndex.class, BackupIndex.getGSonAdapter());
+        return builder.create();
     }
 
     @CommandLine.Option(names = {"--dry-run"},

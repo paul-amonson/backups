@@ -7,6 +7,7 @@ package backups;
 import com.amonson.crypto.Copier;
 import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,6 +38,14 @@ public class BackupSetIndexFactory {
         throw new FileNotFoundException("Missing index file: " + indexFile);
     }
 
+    private Gson newGson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(BackupSet.class, BackupSet.getGSonAdapter());
+        builder.registerTypeAdapter(KeyData.class, KeyData.getGSonAdapter());
+        builder.registerTypeAdapter(BackupIndex.class, BackupIndex.getGSonAdapter());
+        return builder.create();
+    }
+
     private BackupIndex createFile(File indexFile, File keyFile) throws IOException {
         indexFile.getParentFile().mkdirs();
         BackupIndex index = new BackupIndex();
@@ -45,9 +54,9 @@ public class BackupSetIndexFactory {
     }
 
     private BackupIndex loadFile(File indexFile, File keyFile) throws IOException {
-        KeyData key = new Gson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
+        KeyData key = newGson().fromJson(Files.readString(keyFile.toPath(), StandardCharsets.UTF_8), KeyData.class);
         String json = Copier.readStringDecrypted(indexFile, key);
-        return new Gson().fromJson(json, BackupIndex.class);
+        return newGson().fromJson(json, BackupIndex.class);
     }
 
     private final BackupSet set_;

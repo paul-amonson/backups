@@ -6,6 +6,7 @@ package backups;
 
 import com.amonson.crypto.KeyData;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine.*;
@@ -26,13 +27,19 @@ public class GenerateKey implements Callable<Integer> {
             return 2;
         }
         KeyData key = KeyData.newKeyData();
-        String json = new Gson().toJson(key);
+        String json = newGson().toJson(key);
         if(outputFile_.toString().equals("-"))
             System.out.println(json);
         else
             Files.writeString(outputFile_.toPath(), json);
         log_.info("New key generated.");
         return 0;
+    }
+
+    private Gson newGson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(KeyData.class, KeyData.getGSonAdapter());
+        return builder.create();
     }
 
     @Parameters(paramLabel="output_file", description = "Output key filename or '-' for output to console.")

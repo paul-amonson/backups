@@ -5,6 +5,7 @@
 package backups;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import picocli.CommandLine;
 
@@ -32,7 +33,7 @@ public class CreateBackupSet implements Callable<Integer> {
                 throw new IllegalAccessException(String.format("Failed to create the set file '%s'!", setFile_)); // No
             setFile_ = setFile_.getAbsoluteFile();
             BackupSet set = new BackupSet(this);
-            String contents = new Gson().toJson(set);
+            String contents = newGson().toJson(set);
             LogManager.getRootLogger().info(contents);
             Files.writeString(setFile_.toPath(), contents);
             return 0;
@@ -58,6 +59,12 @@ public class CreateBackupSet implements Callable<Integer> {
         if(!file.isFile() || !file.canRead())
             throw new IllegalAccessException(String.format("Folder '%s' is either not a directory or is not readable!",
                     file));
+    }
+
+    private Gson newGson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(BackupSet.class, BackupSet.getGSonAdapter());
+        return builder.create();
     }
 
     @CommandLine.Option(names = {"-f", "--force"}, description = "Overwrite an existing backup set file.")

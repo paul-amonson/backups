@@ -4,14 +4,13 @@
 //
 package backups;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.io.File;
 import java.util.UUID;
 
 class BackupIndexEntry {
-    // Entry point for new file...
+    BackupIndexEntry() {}
+
+        // Entry point for new file...
     BackupIndexEntry(File newFile) {
         file_ = newFile.getAbsoluteFile();
         fileId_ = UUID.randomUUID().toString();
@@ -47,18 +46,12 @@ class BackupIndexEntry {
     boolean needsBackup() { return needsBackup_; }
     boolean wasChecked() { return checked_; }
 
-    @SerializedName(value="file")
-    private File file_;
-    @SerializedName(value="id")
-    private String fileId_;
-    @SerializedName(value="last-modified")
-    private long lastModified_;
-    @SerializedName(value="last-size")
-    private long lastSize_;
+    File file_;
+    String fileId_;
+    long lastModified_;
+    long lastSize_;
 
-    @Expose(serialize = false, deserialize = false)
     private boolean needsBackup_ = false;
-    @Expose(serialize = false, deserialize = false)
     private boolean checked_ = false;
 
 }
